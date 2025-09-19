@@ -15,6 +15,7 @@ on:
         description: '¿Tiene permiso especial?'
         required: false
         type: boolean
+        default: false
 
 env:
   SALUDO: "Hola"
@@ -26,18 +27,23 @@ jobs:
     steps:
       - name: Validar país
         id: validacion_pais
-        if: ${{ contains(fromJSON(env.PAISES_PERMITIDOS), inputs.pais) }}
         run: |
-          echo "El país '${{ inputs.pais }}' está en la lista de permitidos."
-          echo "país_valido=true" >> $GITHUB_ENV
+          if ${{ contains(fromJSON(env.PAISES_PERMITIDOS), inputs.pais) }}; then
+            echo "El país '${{ inputs.pais }}' está en la lista de permitidos."
+            echo "::set-output name=pais_valido::true"
+          else
+            echo "El país '${{ inputs.pais }}' no está en la lista permitida."
+            echo "::set-output name=pais_valido::false"
+          fi
       
       - name: Saludar al usuario
+        if: steps.validacion_pais.outputs.pais_valido == 'true'
         run: echo "${{ env.SALUDO }} ${{ inputs.usuario }}"
         
       - name: Mostrar permiso especial
-        if: ${{ inputs.permiso_especial == true }}
+        if: ${{ inputs.permiso_especial }}
         run: echo "El usuario ${{ inputs.usuario }} tiene permiso especial."
         
       - name: Mensaje de país no permitido
-        if: ${{ env.país_valido != 'true' }}
-        run: echo "El país '${{ inputs.pais }}' no está en la lista permitida."
+        if: steps.validacion_pais.outputs.pais_valido == 'false'
+        run: echo "El país '${{ inputs.pais }}' no está en la lista permitida. No se puede continuar."
