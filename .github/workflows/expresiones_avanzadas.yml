@@ -1,26 +1,3 @@
-name: Expresiones Avanzadas
-
-on:
-  workflow_dispatch:
-    inputs:
-      usuario:
-        description: 'Nombre de usuario'
-        required: true
-        type: string
-      pais:
-        description: 'País de origen'
-        required: true
-        type: string
-      permiso_especial:
-        description: '¿Tiene permiso especial?'
-        required: false
-        type: boolean
-        default: false
-
-env:
-  SALUDO: "Hola"
-  PAISES_PERMITIDOS: '["España", "Mexico", "Colombia"]'
-
 jobs:
   validar_y_saludar:
     runs-on: ubuntu-latest
@@ -30,20 +7,28 @@ jobs:
         run: |
           if ${{ contains(fromJSON(env.PAISES_PERMITIDOS), inputs.pais) }}; then
             echo "El país '${{ inputs.pais }}' está en la lista de permitidos."
+            echo "::notice title=Validación de País::El país '${{ inputs.pais }}' está en la lista de permitidos."
             echo "pais_valido=true" >> $GITHUB_ENV
           else
             echo "El país '${{ inputs.pais }}' no está en la lista permitida."
+            echo "::notice title=Error de País::El país '${{ inputs.pais }}' no está en la lista permitida."
             echo "pais_valido=false" >> $GITHUB_ENV
           fi
       
       - name: Saludar al usuario
         if: env.pais_valido == 'true'
-        run: echo "${{ env.SALUDO }} ${{ inputs.usuario }}"
+        run: |
+          echo "${{ env.SALUDO }} ${{ inputs.usuario }}"
+          echo "::notice title=Saludo::${{ env.SALUDO }} ${{ inputs.usuario }}"
         
       - name: Mostrar permiso especial
         if: ${{ inputs.permiso_especial }}
-        run: echo "El usuario ${{ inputs.usuario }} tiene permiso especial."
+        run: |
+          echo "El usuario ${{ inputs.usuario }} tiene permiso especial."
+          echo "::notice title=Permiso Especial::El usuario ${{ inputs.usuario }} tiene permiso especial."
         
       - name: Mensaje de país no permitido
         if: env.pais_valido == 'false'
-        run: echo "El país '${{ inputs.pais }}' no está en la lista permitida. No se puede continuar."
+        run: |
+          echo "El país '${{ inputs.pais }}' no está en la lista permitida. No se puede continuar."
+          echo "::notice title=Error de País::El país '${{ inputs.pais }}' no está en la lista permitida. No se puede continuar."
