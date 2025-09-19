@@ -1,17 +1,37 @@
+name: Expresiones Avanzadas
+
+on:
+  workflow_dispatch:
+    inputs:
+      usuario:
+        description: 'Nombre de usuario'
+        required: true
+        type: string
+      pais:
+        description: 'País de origen'
+        required: true
+        type: string
+      permiso_especial:
+        description: '¿Tiene permiso especial?'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  SALUDO: "Hola"
+  PAISES_PERMITIDOS: '["España", "Mexico", "Colombia"]'
+
 jobs:
   validar_y_saludar:
     runs-on: ubuntu-latest
     steps:
       - name: Validar país
-        id: validacion_pais
         run: |
-          if ${{ contains(fromJSON(env.PAISES_PERMITIDOS), inputs.pais) }}; then
+          if [[ "${{ contains(fromJSON(env.PAISES_PERMITIDOS), inputs.pais) }}" == "true" ]]; then
             echo "El país '${{ inputs.pais }}' está en la lista de permitidos."
-            echo "::notice title=Validación de País::El país '${{ inputs.pais }}' está en la lista de permitidos."
             echo "pais_valido=true" >> $GITHUB_ENV
           else
             echo "El país '${{ inputs.pais }}' no está en la lista permitida."
-            echo "::notice title=Error de País::El país '${{ inputs.pais }}' no está en la lista permitida."
             echo "pais_valido=false" >> $GITHUB_ENV
           fi
       
